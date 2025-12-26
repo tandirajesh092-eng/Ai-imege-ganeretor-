@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Image Generator</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+  font-family: 'Noto Sans', sans-serif;
+  margin:0;
+  overflow-x:hidden;
+}
+h1,h2 { font-family: 'Space Grotesk', sans-serif; }
+textarea::placeholder { color:#ccc; }
+button:active { transform:scale(0.97); }
+.fade { transition: all 0.5s ease; }
+.bg-animated {
+  background: linear-gradient(270deg, #ff0080, #7928ca, #00f2fe);
+  background-size: 600% 600%;
+  animation: gradientBG 15s ease infinite;
+}
+@keyframes gradientBG {
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
+}
+</style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-black">
+
+<!-- SCREEN 1: WELCOME -->
+<div id="welcome" class="h-screen flex flex-col items-center justify-center px-6 bg-animated text-white">
+  <h1 class="text-5xl font-bold mb-4 text-center animate-pulse">AI Image Generator</h1>
+  <p class="text-gray-200 text-center mb-10">Imagine • Type • Create</p>
+  <button onclick="openCreate()" class="px-10 py-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-lg font-semibold shadow-lg animate-bounce">
+    Get Started
+  </button>
+</div>
+
+<!-- SCREEN 2: CREATE -->
+<div id="create" class="hidden flex flex-col flex-1 px-4 py-4 space-y-4 text-white">
+
+  <!-- Prompt Section -->
+  <div class="flex flex-col space-y-3">
+    <textarea id="prompt" rows="3"
+      class="w-full p-4 rounded-2xl bg-white/10 backdrop-blur outline-none resize-none text-white"
+      placeholder="A cinematic portrait of a cyberpunk girl, neon lights, ultra realistic"></textarea>
+
+    <div class="flex gap-3">
+      <button onclick="surprise()" class="flex-1 py-2 rounded-xl bg-white/20 font-semibold">Surprise Me</button>
+      <select id="ratio" class="flex-1 py-2 rounded-xl bg-white/20">
+        <option value="9:16">9:16</option>
+        <option value="1:1">1:1</option>
+        <option value="16:9">16:9</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="guidance">Guidance:</label>
+      <input type="range" id="guidance" min="1" max="20" step="0.5" value="7.5" class="flex-1">
+      <span id="gval">7.5</span>
+    </div>
+  </div>
+
+  <!-- Generate + Result -->
+  <div class="flex flex-col space-y-4">
+    <button onclick="generate()" class="w-full py-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 font-semibold shadow-lg">
+      Generate Image
+    </button>
+    <div class="w-full h-96 bg-white/5 rounded-2xl flex items-center justify-center">
+      <img id="result" class="max-w-full max-h-full rounded-2xl hidden" />
+      <span id="loading" class="text-gray-400">Your image will appear here</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const welcome = document.getElementById('welcome');
+const create = document.getElementById('create');
+const prompt = document.getElementById('prompt');
+const result = document.getElementById('result');
+const loading = document.getElementById('loading');
+const ratio = document.getElementById('ratio');
+const gval = document.getElementById('gval');
+const guidance = document.getElementById('guidance');
+
+guidance.oninput = ()=> gval.innerText = guidance.value;
+
+function openCreate(){
+  welcome.classList.add('hidden');
+  create.classList.remove('hidden');
+}
+
+function surprise(){
+  const ideas = [
+    "A futuristic city floating in space",
+    "Ultra realistic tiger portrait",
+    "Anime girl with glowing eyes",
+    "Cyberpunk street at night",
+    "Fantasy castle on clouds"
+  ];
+  prompt.value = ideas[Math.floor(Math.random()*ideas.length)];
+}
+
+function generate(){
+  if(!prompt.value.trim()){ alert("Please enter prompt"); return; }
+
+  result.classList.add('hidden');
+  loading.innerText = "Generating...";
+  
+  const seed = Math.floor(Math.random()*99999);
+  const finalPrompt = prompt.value + ", ultra realistic, high quality, professional photography";
+  
+  // Pollinations API
+  const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(finalPrompt) +
+              "?seed=" + seed + "&width=768&height=1024";
+
+  const img = new Image();
+  img.src = url;
+  img.onload = ()=>{
+    result.src = url;
+    result.classList.remove('hidden');
+    loading.innerText = "";
+  }
+  img.onerror = ()=>{
+    loading.innerText = "Failed to generate image, try again";
+  }
+}
+</script>
+
+</body>
+</html>
